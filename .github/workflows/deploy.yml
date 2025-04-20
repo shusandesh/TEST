@@ -11,6 +11,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -27,11 +28,11 @@ jobs:
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
           else
-            VERSION=${GITHUB_REF##*/}
+            VERSION=${GITHUB_REF##*/}  # Extract branch name
           fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-          # Conditional values based on branch
+          # Branch-specific configuration
           if [[ "$VERSION" == "main" ]]; then
             echo "APP_PORT=3000" >> $GITHUB_ENV
             echo "CONTAINER_NAME=prod-app" >> $GITHUB_ENV
@@ -60,15 +61,27 @@ jobs:
           username: ${{ secrets.TEST_BD_VPS_USER }}
           key: ${{ secrets.TEST_BD_VPS_SSH_KEY }}
           script: |
-            mkdir -p $DEPLOY_DIR
-            cd $DEPLOY_DIR
+            # Inject environment variables into the remote session
+            DEPLOY_DIR="${{ env.DEPLOY_DIR }}"
+            VERSION="${{ env.VERSION }}"
+            CONTAINER_NAME="${{ env.CONTAINER_NAME }}"
+            IMAGE_NAME="${{ env.IMAGE_NAME }}"
+            APP_PORT="${{ env.APP_PORT }}"
+            VOLUME_NAME="${{ env.VOLUME_NAME }}"
 
-            git pull origin $VERSION || git clone --branch $VERSION git@github.com:${{ github.repository }} .
+            echo "Deploying version: $VERSION to $DEPLOY_DIR"
+            echo "Using image: $IMAGE_NAME"
 
-            export CONTAINER_NAME=$CONTAINER_NAME
-            export IMAGE_NAME=$IMAGE_NAME
-            export APP_PORT=$APP_PORT
-            export VOLUME_NAME=$VOLUME_NAME
+            mkdir -p "$DEPLOY_DIR"
+            cd "$DEPLOY_DIR"
+
+            if [ -d .git ]; then
+              git fetch origin "$VERSION"
+              git checkout "$VERSION"
+              git pull origin "$VERSION"
+            else
+              git clone --branch "$VERSION" git@github.com:${{ github.repository }} .
+            fi
 
             docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" -p "${{ secrets.GHCR_TOKEN }}"
 
