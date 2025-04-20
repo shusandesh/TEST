@@ -16,5 +16,7 @@ services:
           memory: 512M
 
 volumes:
-  app-volume:
-    name: ${VOLUME_NAME}
+  prod-data:
+    name: prod-data
+  test-data:
+    name: test-data
