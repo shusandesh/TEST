@@ -88,8 +88,8 @@ jobs:
             echo "APP_PORT=$APP_PORT" >> .env
             echo "VOLUME_NAME=$VOLUME_NAME" >> .env
 
-            docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" -p "${{ secrets.GHCR_TOKEN }}"
+            sudo docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" -p "${{ secrets.GHCR_TOKEN }}"
 
-            docker compose down || true
-            docker compose pull || true
-            docker compose up -d
+            sudo docker compose down || true
+            sudo docker compose pull || true
+            sudo docker compose up -d
