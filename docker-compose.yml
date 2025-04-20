@@ -16,5 +16,5 @@ services:
           memory: 512M
 
 volumes:
-  ${{VOLUME_NAME}}:
+  ${VOLUME_NAME}:
     name: ${VOLUME_NAME}
