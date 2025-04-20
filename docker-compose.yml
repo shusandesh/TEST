@@ -21,3 +21,4 @@ services:
 
 volumes:
  app-data:
+  name: app-data
