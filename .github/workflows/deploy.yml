@@ -28,11 +28,10 @@ jobs:
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
           else
-            VERSION=${GITHUB_REF##*/}  # Extract branch name
+            VERSION=${GITHUB_REF##*/}
           fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-          # Branch-specific configuration
           if [[ "$VERSION" == "main" ]]; then
             echo "APP_PORT=3000" >> $GITHUB_ENV
             echo "CONTAINER_NAME=prod-app" >> $GITHUB_ENV
@@ -55,13 +54,13 @@ jobs:
           docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/myapp:latest
 
       - name: Deploy to VPS
+        if: github.ref != 'refs/heads/main' || github.actor == 'your-github-username'
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.TEST_BD_VPS_IP }}
           username: ${{ secrets.TEST_BD_VPS_USER }}
           key: ${{ secrets.TEST_BD_VPS_SSH_KEY }}
           script: |
-            # Inject environment variables into the remote session
             DEPLOY_DIR="${{ env.DEPLOY_DIR }}"
             VERSION="${{ env.VERSION }}"
             CONTAINER_NAME="${{ env.CONTAINER_NAME }}"
@@ -82,6 +81,13 @@ jobs:
             else
               git clone --branch "$VERSION" git@github.com:${{ github.repository }} .
             fi
+
+            cat <<EOF > .env
+CONTAINER_NAME=$CONTAINER_NAME
+IMAGE_NAME=$IMAGE_NAME
+APP_PORT=$APP_PORT
+VOLUME_NAME=$VOLUME_NAME
+EOF
 
             docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" -p "${{ secrets.GHCR_TOKEN }}"
 
