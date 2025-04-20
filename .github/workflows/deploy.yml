@@ -1,0 +1,78 @@
+name: CI/CD with Docker
+
+on:
+  push:
+    branches:
+      - main
+      - test
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+
+      - name: Set version from tag or branch
+        id: vars
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION=${GITHUB_REF##*/}
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+          # Conditional values based on branch
+          if [[ "$VERSION" == "main" ]]; then
+            echo "APP_PORT=3000" >> $GITHUB_ENV
+            echo "CONTAINER_NAME=prod-app" >> $GITHUB_ENV
+            echo "VOLUME_NAME=prod-data" >> $GITHUB_ENV
+            echo "DEPLOY_DIR=/home/admin/myapp-prod" >> $GITHUB_ENV
+          else
+            echo "APP_PORT=4000" >> $GITHUB_ENV
+            echo "CONTAINER_NAME=test-app" >> $GITHUB_ENV
+            echo "VOLUME_NAME=test-data" >> $GITHUB_ENV
+            echo "DEPLOY_DIR=/home/admin/myapp-test" >> $GITHUB_ENV
+          fi
+
+          echo "IMAGE_NAME=ghcr.io/${{ secrets.GHCR_USERNAME }}/myapp:$VERSION" >> $GITHUB_ENV
+
+      - name: Build & Push Image
+        run: |
+          docker build -t $IMAGE_NAME .
+          docker tag $IMAGE_NAME ghcr.io/${{ secrets.GHCR_USERNAME }}/myapp:latest
+          docker push $IMAGE_NAME
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/myapp:latest
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            mkdir -p $DEPLOY_DIR
+            cd $DEPLOY_DIR
+
+            git pull origin $VERSION || git clone --branch $VERSION git@github.com:${{ github.repository }} .
+
+            export CONTAINER_NAME=$CONTAINER_NAME
+            export IMAGE_NAME=$IMAGE_NAME
+            export APP_PORT=$APP_PORT
+            export VOLUME_NAME=$VOLUME_NAME
+
+            docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" -p "${{ secrets.GHCR_TOKEN }}"
+
+            docker compose down || true
+            docker compose pull || true
+            docker compose up -d
+

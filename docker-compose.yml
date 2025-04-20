@@ -1,24 +1,20 @@
 services:
   mynodeapp:
-    container_name: test-app       # Friendly container name
-    build:
-      context: .                          # Uses Dockerfile in this folder
-      dockerfile: Dockerfile
-    image: ghcr.io/shusandesh/myapp:latest
-    volumes:
-      - app-data:/app/data
-
+    container_name: ${{CONTAINER_NAME}}        # dynamic container name
+    image: ${{IMAGE_NAME}}                     # dynamically built image name
     ports:
-      - "3000:3000"                       # Map port 3000 (host) to 3000 (container)
+      - "${{APP_PORT}}:3000"                   # host:container port
+    volumes:
+      - "${{VOLUME_NAME}}:/app/data"           # persistent volume
     environment:
       - NODE_ENV=production
-    restart: always                       # Auto-restart on failure/reboot
+    restart: always
     deploy:
       resources:
         limits:
-          cpus: '0.50'                    # Optional: CPU usage limit
-          memory: 512M                    # Optional: Memory usage limit
+          cpus: '0.5'
+          memory: 512M
 
 volumes:
- app-data:
-  name: app-data                         # To enforce name
+  ${{VOLUME_NAME}}:
+    name: ${{VOLUME_NAME}}
