@@ -5,6 +5,9 @@ services:
       context: .                          # Uses Dockerfile in this folder
       dockerfile: Dockerfile
     image: mytestapp:v1.0                     # Name & version of image
+    volumes:
+      - app-data:/app/data
+
     ports:
       - "3000:3000"                       # Map port 3000 (host) to 3000 (container)
     environment:
