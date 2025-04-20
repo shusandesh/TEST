@@ -1,11 +1,11 @@
 services:
   mynodeapp:
-    container_name: ${{CONTAINER_NAME}}        # dynamic container name
-    image: ${{IMAGE_NAME}}                     # dynamically built image name
+    container_name: ${CONTAINER_NAME}        # dynamic container name
+    image: ${IMAGE_NAME}                     # dynamically built image name
     ports:
-      - "${{APP_PORT}}:3000"                   # host:container port
+      - "${APP_PORT}:3000"                   # host:container port
     volumes:
-      - "${{VOLUME_NAME}}:/app/data"           # persistent volume
+      - "${VOLUME_NAME}:/app/data"           # persistent volume
     environment:
       - NODE_ENV=production
     restart: always
@@ -17,4 +17,4 @@ services:
 
 volumes:
   ${{VOLUME_NAME}}:
-    name: ${{VOLUME_NAME}}
+    name: ${VOLUME_NAME}
