@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
     image: mytestapp:v1.0                     # Name & version of image
     volumes:
-      - test-app:/app/data
+      - app-data:/app/data
 
     ports:
       - "3000:3000"                       # Map port 3000 (host) to 3000 (container)
@@ -20,4 +20,4 @@ services:
           memory: 512M                    # Optional: Memory usage limit
 
 volumes:
- test-app:
+ app-data:
