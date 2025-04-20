@@ -54,7 +54,7 @@ jobs:
           docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/myapp:latest
 
       - name: Deploy to VPS
-        if: github.ref != 'refs/heads/main' || github.actor == 'your-github-username'
+        if: ${{ github.ref != 'refs/heads/main' || github.actor == 'your-github-username' }}
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.TEST_BD_VPS_IP }}
@@ -82,12 +82,11 @@ jobs:
               git clone --branch "$VERSION" git@github.com:${{ github.repository }} .
             fi
 
-            cat <<EOF > .env
-CONTAINER_NAME=$CONTAINER_NAME
-IMAGE_NAME=$IMAGE_NAME
-APP_PORT=$APP_PORT
-VOLUME_NAME=$VOLUME_NAME
-EOF
+            echo "Creating .env file for Docker Compose"
+            echo "CONTAINER_NAME=$CONTAINER_NAME" > .env
+            echo "IMAGE_NAME=$IMAGE_NAME" >> .env
+            echo "APP_PORT=$APP_PORT" >> .env
+            echo "VOLUME_NAME=$VOLUME_NAME" >> .env
 
             docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" -p "${{ secrets.GHCR_TOKEN }}"
 
