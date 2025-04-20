@@ -54,7 +54,7 @@ jobs:
           docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/myapp:latest
 
       - name: Deploy to VPS
-        if: ${{ github.ref != 'refs/heads/main' || github.actor == 'your-github-username' }}
+        if: ${{ github.ref != 'refs/heads/main' || github.actor == 'shusandesh' }}
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.TEST_BD_VPS_IP }}
