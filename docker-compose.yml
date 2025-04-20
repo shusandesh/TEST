@@ -7,8 +7,6 @@ services:
     image: mytestapp:v1.0                     # Name & version of image
     ports:
       - "3000:3000"                       # Map port 3000 (host) to 3000 (container)
-    volumes:
-      - app_data:/app/data                # Persistent data
     environment:
       - NODE_ENV=production
     restart: always                       # Auto-restart on failure/reboot
