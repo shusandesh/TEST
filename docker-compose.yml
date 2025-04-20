@@ -4,7 +4,7 @@ services:
     build:
       context: .                          # Uses Dockerfile in this folder
       dockerfile: Dockerfile
-    image: mytestapp:v1.0                     # Name & version of image
+    image: ghcr.io/shusandesh/myapp:latest
     volumes:
       - app-data:/app/data
 
@@ -21,4 +21,4 @@ services:
 
 volumes:
  app-data:
-  name: app-data
+  name: app-data                         # To enforce name
