@@ -56,9 +56,9 @@ jobs:
       - name: Deploy to VPS
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.TEST_BD_VPS_IP }}
+          username: ${{ secrets.TEST_BD_VPS_USER }}
+          key: ${{ secrets.TEST_BD_VPS_SSH_KEY }}
           script: |
             mkdir -p $DEPLOY_DIR
             cd $DEPLOY_DIR
@@ -75,4 +75,3 @@ jobs:
             docker compose down || true
             docker compose pull || true
             docker compose up -d
-
